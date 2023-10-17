@@ -8,5 +8,6 @@ int main(int argc, char* argv[]) {
     maze.Print();
     std::cout << '\n';
     maze.Print();
+    maze.AStarSearch();
     return 0;
 }

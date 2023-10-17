@@ -3,7 +3,8 @@
 
 #include "square.h"
 
-
+#ifndef MAZE_H
+#define MAZE_H
 
 class Maze {
 public:
@@ -17,10 +18,18 @@ public:
     void ModifyEnter(const int enter_row, const int enter_col);
     void ModifyExit(const int exit_row, const int exit_col);
     void AStarSearch();
+    void HeuristicCost(Square* current_square);
+    void AccumulatedCost(Square* current_square);
+    void TotalCost(Square* current_square);
+
 private:
+    const int kCostDiagonal{7};
+    const int kCostStraight{3};
     int rows_;
     int cols_;
     std::vector<std::vector<Square>> map_;
     Square* enter_;
     Square* exit_;
 };
+
+#endif

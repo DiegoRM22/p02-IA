@@ -1,4 +1,5 @@
 #include <fstream>
+#include <set>
 
 #include "maze.h"
 
@@ -22,7 +23,7 @@ Maze::Maze(const std::string filename) {
                 } else if (current_line[j] == '4') {
                     exit_ = &map_[i][counterCols];
                 }
-                Square square(current_line[j]);
+                Square square(i, counterCols, current_line[j]);
                 map_[i][counterCols] = square;
                 ++counterCols;
             }
@@ -32,10 +33,45 @@ Maze::Maze(const std::string filename) {
 }
 
 void Maze::AStarSearch() {
-    /*Busqueda A* desde la entrada del laberinto*/
-    std::vector<Square*> open_list;
+    std::set<Square*> open_list;
     std::vector<Square*> closed_list;
-    open_list.push_back(enter_);
+    HeuristicCost(enter_);
+    AccumulatedCost(enter_);
+    TotalCost(enter_);
+    open_list.insert(enter_);
+    std::cout << "Costo heuristico de la casilla de entrada: " << enter_->getHnCost() << std::endl;
+    std::cout << "Costo acumulado de la casilla de entrada: " << enter_->getGnCost() << std::endl;
+    std::cout << "Costo total de la casilla de entrada: " << enter_->getFnCost() << std::endl;
+}
+
+void Maze::HeuristicCost(Square* current_square) {
+    // Diferencia de casillas en la fila.
+    int row_difference{abs(current_square->getRow() - exit_->getRow())};
+    // diferencia de casillas en la columna.
+    int column_difference{abs(current_square->getColumn() - exit_->getColumn())};
+    // Suma de las casillas de diferencia por el precio de movimiento horizontal o vertical.
+    current_square->setHnCost((row_difference + column_difference) * kCostStraight);
+}
+
+void Maze::AccumulatedCost(Square* current_square) {
+    // Si la casilla actual no tiene padre, su costo acumulado es 0, porque es la de Entrada.
+    if (current_square->getFather() == nullptr) {
+        current_square->setGnCost(0);
+    } else {
+        Square* father = current_square->getFather();
+        // Si están en la misma fila o columna padre e hijo, el costo acumulado es el del padre más el costo de movimiento horizontal o vertical.
+        if (current_square->getRow() == father->getRow() || current_square->getColumn() == father->getColumn()) {
+            current_square->setGnCost(current_square->getFather()->getGnCost() + kCostStraight);
+        } else {
+            // Si no, el costo acumulado es el del padre más el costo de movimiento diagonal.
+            current_square->setGnCost(current_square->getFather()->getGnCost() + kCostDiagonal);
+        }
+    }
+}
+
+void Maze::TotalCost(Square* current_square) {
+    // f(n) = g(n) + h(n)
+    current_square->setFnCost(current_square->getGnCost() + current_square->getHnCost());
 }
 
 void Maze::Print() const{
