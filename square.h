@@ -37,4 +37,8 @@ class Square {
 
 bool operator<(const Square& square, const Square& other_square);
 
+bool operator==(const Square& square, const Square& other_square);
+
+bool operator!=(const Square& square, const Square& other_square);
+
 #endif

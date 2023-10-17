@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <set>
 
 #include "square.h"
 
@@ -21,6 +22,7 @@ public:
     void HeuristicCost(Square* current_square);
     void AccumulatedCost(Square* current_square);
     void TotalCost(Square* current_square);
+    void CheckNeighbours(Square* current_square);
 
 private:
     const int kCostDiagonal{7};
@@ -30,6 +32,8 @@ private:
     std::vector<std::vector<Square>> map_;
     Square* enter_;
     Square* exit_;
+    std::set<Square*> open_list;
+    std::set<Square*> closed_list;
 };
 
 #endif

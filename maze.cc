@@ -33,15 +33,38 @@ Maze::Maze(const std::string filename) {
 }
 
 void Maze::AStarSearch() {
-    std::set<Square*> open_list;
-    std::vector<Square*> closed_list;
+    open_list.clear();
+    closed_list.clear();
     HeuristicCost(enter_);
     AccumulatedCost(enter_);
     TotalCost(enter_);
     open_list.insert(enter_);
-    std::cout << "Costo heuristico de la casilla de entrada: " << enter_->getHnCost() << std::endl;
-    std::cout << "Costo acumulado de la casilla de entrada: " << enter_->getGnCost() << std::endl;
-    std::cout << "Costo total de la casilla de entrada: " << enter_->getFnCost() << std::endl;
+    while (!open_list.empty()) {
+        Square* current_square = *open_list.begin();
+        open_list.erase(open_list.begin());
+        closed_list.insert(current_square);
+        std::cout << "Casilla actual: " << current_square->getRow() << ", " << current_square->getColumn() << std::endl;
+        CheckNeighbours(current_square);
+
+    }
+}
+
+void Maze::CheckNeighbours(Square* current_square) {
+    for (int i{current_square->getRow() - 1}; i <= current_square->getRow();++i) {
+        for (int j{current_square->getColumn() - 1}; j <= current_square->getColumn(); ++j) {
+            if (map_[i][j] != *current_square){
+                // Si no está ni en A ni en C.
+                if (open_list.find(&map_[i][j]) != open_list.end() && closed_list.find(&map_[i][j]) != closed_list.end()) {
+                    map_[i][j].setFather(current_square);
+                    open_list.insert(&map_[i][j]);
+                } else if (open_list.find(&map_[i][j]) == open_list.end()) {
+                    // Si el nodo está en A, actualizar su coste g(n) y por tanto su padre en el camino.
+                    map_[i][j].setFather(current_square);
+                    AccumulatedCost(&map_[i][j]);
+                }
+            }
+        }
+    } 
 }
 
 void Maze::HeuristicCost(Square* current_square) {
