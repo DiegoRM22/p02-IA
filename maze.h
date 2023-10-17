@@ -16,6 +16,7 @@ public:
     int getCols() const { return cols_; }
     void ModifyEnter(const int enter_row, const int enter_col);
     void ModifyExit(const int exit_row, const int exit_col);
+    void AStarSearch();
 private:
     int rows_;
     int cols_;

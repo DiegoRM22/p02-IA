@@ -14,7 +14,6 @@ Maze::Maze(const std::string filename) {
     map_.resize(rows_, std::vector<Square>(cols_));
     while(file.peek() != EOF) {
         getline(file, current_line);
-        /*Eliminar espacio en blaco de current_line*/
         int counterCols{0};
         for (int j{0}; counterCols < cols_; ++j) {
             if (current_line[j] != ' ') {
@@ -30,6 +29,13 @@ Maze::Maze(const std::string filename) {
         }
         ++i;
     }
+}
+
+void Maze::AStarSearch() {
+    /*Busqueda A* desde la entrada del laberinto*/
+    std::vector<Square*> open_list;
+    std::vector<Square*> closed_list;
+    open_list.push_back(enter_);
 }
 
 void Maze::Print() const{
