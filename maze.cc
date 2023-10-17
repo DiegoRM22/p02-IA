@@ -18,6 +18,11 @@ Maze::Maze(const std::string filename) {
         int counterCols{0};
         for (int j{0}; counterCols < cols_; ++j) {
             if (current_line[j] != ' ') {
+                if (current_line[j] == '3') {
+                    enter_ = &map_[i][counterCols];
+                } else if (current_line[j] == '4') {
+                    exit_ = &map_[i][counterCols];
+                }
                 Square square(current_line[j]);
                 map_[i][counterCols] = square;
                 ++counterCols;
@@ -35,4 +40,16 @@ void Maze::Print() const{
         }
         std::cout << std::endl;
     }
+}
+
+void Maze::ModifyEnter(const int enter_row, const int enter_col) {
+    enter_->setIdentifier(map_[enter_row][enter_col].getIdentifier());
+    map_[enter_row][enter_col].setIdentifier('3');
+    enter_ = &map_[enter_row][enter_col];
+}
+
+void Maze::ModifyExit(const int exit_row, const int exit_col) {
+    exit_->setIdentifier(map_[exit_row][exit_col].getIdentifier());
+    map_[exit_row][exit_col].setIdentifier('4');
+    exit_ = &map_[exit_row][exit_col];
 }
