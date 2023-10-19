@@ -35,32 +35,65 @@ Maze::Maze(const std::string filename) {
 void Maze::AStarSearch() {
     open_list.clear();
     closed_list.clear();
+    other_list.clear();
+    open_list.insert(enter_);
+    other_list.insert(*enter_);
     HeuristicCost(enter_);
     AccumulatedCost(enter_);
     TotalCost(enter_);
-    open_list.insert(enter_);
     while (!open_list.empty()) {
-        Square* current_square = *open_list.begin();
-        open_list.erase(open_list.begin());
+        Square other_square = *other_list.begin();
+        Square* current_square = new Square(other_square);
+        std::cout << *current_square << std::endl;
+        open_list.erase(current_square);
+        other_list.erase(other_square);
         closed_list.insert(current_square);
+
+        
+        if (current_square->getIdentifier() == '4') {
+            std::cout << "Se ha encontrado la salida" << std::endl;
+            PrintPath(current_square);
+            break;
+        }
+
         std::cout << "Casilla actual: " << current_square->getRow() << ", " << current_square->getColumn() << std::endl;
+
         CheckNeighbours(current_square);
+        PrintOpenList();
+        PrintOtherList();
+        PrintClosedList();
+
+        /* Esperar a que el usuario pulse enter*/
+        
+        std::cin.ignore();
 
     }
 }
 
 void Maze::CheckNeighbours(Square* current_square) {
-    for (int i{current_square->getRow() - 1}; i <= current_square->getRow();++i) {
-        for (int j{current_square->getColumn() - 1}; j <= current_square->getColumn(); ++j) {
-            if (map_[i][j] != *current_square){
+    for (int i{current_square->getRow() - 1}; i <= current_square->getRow() + 1;++i) {
+        for (int j{current_square->getColumn() - 1}; j <= current_square->getColumn() + 1; ++j) {
+            //std::cout << "i: " << i << " j: " << j << std::endl;
+            Square* neighbour =  new Square(map_[i][j]);
+            if (*neighbour != *current_square && neighbour->getIdentifier() != '1' && i >= 0 && i < rows_ && j >= 0 && j < cols_) {
                 // Si no está ni en A ni en C.
-                if (open_list.find(&map_[i][j]) != open_list.end() && closed_list.find(&map_[i][j]) != closed_list.end()) {
-                    map_[i][j].setFather(current_square);
-                    open_list.insert(&map_[i][j]);
-                } else if (open_list.find(&map_[i][j]) == open_list.end()) {
+                //std::cout << "Casilla: " << *neighbour << std::endl;
+                if (open_list.find(neighbour) == open_list.end() && closed_list.find(neighbour) == closed_list.end()) {
+                    //std::cout << "No esta ni en A ni en C" << std::endl;
+                    neighbour->setFather(current_square);
+                    HeuristicCost(neighbour);
+                    AccumulatedCost(neighbour);
+                    TotalCost(neighbour);
+                    open_list.insert(neighbour);
+                    other_list.insert(*neighbour);
+                    //std::cout << "tamaño de la lista abierta: " << open_list.size() << std::endl;
+
+                } else if (open_list.find(neighbour) != open_list.end() && closed_list.find(neighbour) == closed_list.end()) {
                     // Si el nodo está en A, actualizar su coste g(n) y por tanto su padre en el camino.
-                    map_[i][j].setFather(current_square);
-                    AccumulatedCost(&map_[i][j]);
+                    //std::cout << "Esta en A" << std::endl;
+                    PrintOpenList();
+                    neighbour->setFather(current_square);
+                    AccumulatedCost(neighbour);
                 }
             }
         }
@@ -117,4 +150,34 @@ void Maze::ModifyExit(const int exit_row, const int exit_col) {
     exit_->setIdentifier(map_[exit_row][exit_col].getIdentifier());
     map_[exit_row][exit_col].setIdentifier('4');
     exit_ = &map_[exit_row][exit_col];
+}
+
+void Maze::PrintOpenList() const {
+    std::cout << "Lista abierta: " << std::endl;
+    for (std::set<Square*>::iterator it = open_list.begin(); it != open_list.end(); ++it) {
+        std::cout << (*it)->getRow() << ", " << (*it)->getColumn() << " " << (*it)->getHnCost() << std::endl;
+    }
+}
+
+void Maze::PrintOtherList() const{
+    std::cout << "Lista de otros: " << std::endl;
+    for (std::set<Square>::iterator it = other_list.begin(); it != other_list.end(); ++it) {
+        std::cout << it->getRow() << ", " << it->getColumn() << " " << it->getHnCost() << std::endl;
+    }
+}
+
+void Maze::PrintClosedList() const {
+    std::cout << "Lista cerrada: " << std::endl;
+    for (std::set<Square*>::iterator it = closed_list.begin(); it != closed_list.end(); ++it) {
+        std::cout << (*it)->getRow() << ", " << (*it)->getColumn() << " " << (*it)->getHnCost() << std::endl;
+    }
+}
+
+void Maze::PrintPath(Square* exit) const {
+    Square* current_square = exit;
+    while (current_square->getFather() != nullptr) {
+        std::cout << *current_square << std::endl;
+        current_square = current_square->getFather();
+    }
+    std::cout << *current_square << std::endl;
 }

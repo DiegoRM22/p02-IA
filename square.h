@@ -23,13 +23,14 @@ class Square {
   void setHnCost(int hnCost) { hnCost_ = hnCost; }
   void setFather(Square* father) { father_ = father; }
 
+
  private:
   int row_;
   int column_;
   char identifier_;
-  int fnCost_;
-  int gnCost_;
-  int hnCost_;
+  int fnCost_ = 0;
+  int gnCost_ = 0;
+  int hnCost_ = 0;
   Square* father_;
 };
 
@@ -37,8 +38,13 @@ class Square {
 
 bool operator<(const Square& square, const Square& other_square);
 
+bool operator>(const Square& square, const Square& other_square);
+
+
 bool operator==(const Square& square, const Square& other_square);
 
 bool operator!=(const Square& square, const Square& other_square);
+
+std::ostream& operator<<(std::ostream& os, const Square& square);
 
 #endif

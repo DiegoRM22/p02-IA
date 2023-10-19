@@ -23,6 +23,10 @@ public:
     void AccumulatedCost(Square* current_square);
     void TotalCost(Square* current_square);
     void CheckNeighbours(Square* current_square);
+    void PrintOpenList() const;
+    void PrintOtherList() const;
+    void PrintClosedList() const;
+    void PrintPath(Square* exit) const;
 
 private:
     const int kCostDiagonal{7};
@@ -34,6 +38,7 @@ private:
     Square* exit_;
     std::set<Square*> open_list;
     std::set<Square*> closed_list;
+    std::set<Square> other_list;
 };
 
 #endif
