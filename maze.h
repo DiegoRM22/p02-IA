@@ -18,7 +18,7 @@ public:
     int getCols() const { return cols_; }
     void ModifyEnter(const int enter_row, const int enter_col);
     void ModifyExit(const int exit_row, const int exit_col);
-    void AStarSearch();
+    void AStarSearch(const std::string& filename);
     void HeuristicCost(Square* current_square);
     void AccumulatedCost(Square* current_square);
     void TotalCost(Square* current_square);
@@ -27,11 +27,11 @@ public:
     void PrintOtherList() const;
     void PrintOtherClosedList() const;
     void PrintClosedList() const;
-    void PrintPath(Square* exit) const;
+    void PrintPath(Square* exit, const std::string& filename) const;
     void PrintVectorOpenList() const;
     void PrintVectorClosedList() const;
-    void PrintGeneratedNodes() const;
-    void PrintAnalysedNodes() const;
+    void PrintGeneratedNodes(const std::string& filename) const;
+    void PrintAnalysedNodes(const std::string& filename) const;
     void SortVector();
     void DeleteDuplicates();
 
@@ -63,6 +63,8 @@ void ModifyFnCost(std::set<Square> list, Square node, int new_cost);
 Square* FindInVector(std::vector<Square*> vector, Square* node);
 
 bool IsInVector(std::vector<Square*> vector, Square* node);
+
+void FilePutContents(const std::string& name, const std::string& content, bool append = false);
 
 
 

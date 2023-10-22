@@ -3,6 +3,16 @@
 
 #include "maze.h"
 
+void FilePutContents(const std::string& name, const std::string& content, bool append) {
+    std::cout << "ESCRIBIENDO EN EL ARCHIVO " << name  << " " << content << std::endl;
+    std::ofstream outfile;
+    if (append)
+        outfile.open(name, std::ios_base::app);
+    else
+        outfile.open(name);
+    outfile << content;
+}
+
 Maze::Maze(const std::string filename) {
     std::ifstream file(filename);
     std::cout << "Leyendo el archivo " << filename << std::endl;
@@ -32,7 +42,11 @@ Maze::Maze(const std::string filename) {
     }
 }
 
-void Maze::AStarSearch() {
+void Maze::AStarSearch(const std::string& filename) {
+    FilePutContents(filename, "Filas: " + std::to_string(rows_), true); 
+    FilePutContents(filename, "Columnas: " + std::to_string(cols_), true);
+    FilePutContents(filename, "Entrada: " + std::to_string(enter_->getRow()) + ", " + std::to_string(enter_->getColumn()), true);
+    FilePutContents(filename, "Salida: " + std::to_string(exit_->getRow()) + ", " + std::to_string(exit_->getColumn()), true);
     vector_open_list.clear();
     vector_closed_list.clear();
     HeuristicCost(enter_);
@@ -41,7 +55,7 @@ void Maze::AStarSearch() {
     vector_open_list.push_back(enter_);
     int counter{0};
     while (!vector_open_list.empty()) {
-        std::cout << "Iteracion: " << counter << std::endl;
+        //std::cout << "Iteracion: " << counter << std::endl;
         DeleteDuplicates();
         SortVector();
         
@@ -54,19 +68,19 @@ void Maze::AStarSearch() {
         vector_closed_list.push_back(other_square);
         analysed_nodes.push_back(other_square);
         
-        std::cout << "Sacamos la casilla: " << *other_square << " de la lista de nodos abiertos" << std::endl;
+        //std::cout << "Sacamos la casilla: " << *other_square << " de la lista de nodos abiertos" << std::endl;
         if (other_square->getIdentifier() == '4') {
             std::cout << "Se ha encontrado la salida" << std::endl;
-            PrintPath(other_square);
-            PrintGeneratedNodes();
-            std::cout << '\n';
-            PrintAnalysedNodes();
+            PrintPath(other_square, filename);
+            PrintGeneratedNodes(filename);
+            FilePutContents(filename, "\n", true);
+            PrintAnalysedNodes(filename);
             return;
         }
         
-        std::cout << '\n';
+        //std::cout << '\n';
         CheckNeighbours(other_square);
-        std::cout << "sale de aqui" << std::endl;
+        //std::cout << "sale de aqui" << std::endl;
 
         /* Esperar a que el usuario pulse enter*/
         
@@ -83,7 +97,7 @@ void Maze::AStarSearch() {
 void Maze::CheckNeighbours(Square* current_square) {
     for (int i{current_square->getRow() - 1}; i <= current_square->getRow() + 1;++i) {
         for (int j{current_square->getColumn() - 1}; j <= current_square->getColumn() + 1; ++j) {
-            std::cout << "viendo vecinos" << std::endl;
+            //std::cout << "viendo vecinos" << std::endl;
            if (j >= 0 && j < cols_ && i >= 0 && i < rows_) {
                 Square* neighbour =  new Square(map_[i][j]);
                 if (neighbour->getIdentifier() != '1' && *neighbour != *current_square) {
@@ -95,21 +109,21 @@ void Maze::CheckNeighbours(Square* current_square) {
                         HeuristicCost(neighbour);
                         AccumulatedCost(neighbour);
                         TotalCost(neighbour);
-                        std::cout << "Casilla: " << *neighbour << "Coste Fn: " << neighbour->getFnCost() << std::endl;
+                        //std::cout << "Casilla: " << *neighbour << "Coste Fn: " << neighbour->getFnCost() << std::endl;
                         // Si no está en A, lo metemos.
                         if (IsInVector(vector_open_list, neighbour) == false) {
-                            std::cout << "LO METEMOS EN A" << std::endl;
+                            //std::cout << "LO METEMOS EN A" << std::endl;
                             vector_open_list.push_back(neighbour);
                             generated_nodes.push_back(neighbour);
-                            std::cout << "ENtro" << std::endl;
+                            //std::cout << "ENtro" << std::endl;
                             
                         } else {
                             // Si esta en A.
-                            std::cout << "ESTA EN A" << std::endl;
+                            //std::cout << "ESTA EN A" << std::endl;
                             Square* found_node = FindInVector(vector_open_list, neighbour);
                             if (found_node->getFnCost() > neighbour->getFnCost()) {
                                 // Si el coste de la casilla actual es menor que el de la casilla encontrada en A, actualizamos el coste de la casilla encontrada en A.
-                                std::cout << "Actualizamos el coste: " << found_node->getFnCost() << " -> " << neighbour->getFnCost() << std::endl;
+                                //std::cout << "Actualizamos el coste: " << found_node->getFnCost() << " -> " << neighbour->getFnCost() << std::endl;
                             // other_open_list.erase(found_node);
                                 //other_open_list.insert(neighbour);
                                 found_node->setFather(current_square);
@@ -245,13 +259,15 @@ void Maze::PrintOtherClosedList() const {
     }
 }
 
-void Maze::PrintPath(Square* exit) const {
+void Maze::PrintPath(Square* exit, const std::string& filename) const {
+    std::ofstream outfile(filename);
+    outfile.open(filename, std::ios_base::app);
     Square* current_square = exit;
     while (current_square->getFather() != nullptr) {
-        std::cout << *current_square << std::endl;
+        outfile << *current_square << std::endl;
         current_square = current_square->getFather();
     }
-    std::cout << *current_square << std::endl;
+    outfile << *current_square << std::endl;
 }
 
 void Maze::PrintVectorOpenList() const {
@@ -268,17 +284,21 @@ void Maze::PrintVectorClosedList() const {
   }
 }
 
-void Maze::PrintGeneratedNodes() const {
-    std::cout << "Nodos generados: " << std::endl;
+void Maze::PrintGeneratedNodes(const std::string& filename) const {
+    std::ofstream outfile(filename);
+    outfile.open(filename, std::ios_base::app);
+    outfile << "Nodos generados: " << std::endl;
     for (int i{0}; i < generated_nodes.size(); ++i) {
-        std::cout << *generated_nodes[i];
+        outfile << *generated_nodes[i];
     }
 }
 
-void Maze::PrintAnalysedNodes() const {
+void Maze::PrintAnalysedNodes(const std::string& filename) const {
+    std::ofstream outfile(filename);
+    outfile.open(filename, std::ios_base::app);
     std::cout << "Nodos analizados: " << std::endl;
     for (int i{0}; i < analysed_nodes.size(); ++i) {
-        std::cout << *analysed_nodes[i];
+        outfile << *analysed_nodes[i];
     }
 }
 
@@ -341,3 +361,4 @@ bool IsInVector(std::vector<Square*> vector, Square* node) {
   }
   return false;
 }
+
