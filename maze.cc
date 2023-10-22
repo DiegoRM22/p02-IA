@@ -33,103 +33,93 @@ Maze::Maze(const std::string filename) {
 }
 
 void Maze::AStarSearch() {
-    open_list.clear();
-    closed_list.clear();
-    other_open_list.clear();
+    vector_open_list.clear();
+    vector_closed_list.clear();
     HeuristicCost(enter_);
     AccumulatedCost(enter_);
     TotalCost(enter_);
-    open_list.insert(enter_);
-    other_open_list.insert(*enter_);
-    vector_open_list.push_back(*enter_);
+    vector_open_list.push_back(enter_);
     int counter{0};
-    while (!other_open_list.empty()) {
+    while (!vector_open_list.empty()) {
         std::cout << "Iteracion: " << counter << std::endl;
         DeleteDuplicates();
         SortVector();
-        //PrintOpenList();
-        //PrintOtherList();
-        PrintVectorList();
-        PrintOtherClosedList();
-        PrintClosedList();
+        
+        PrintVectorOpenList();
+        PrintVectorClosedList();
         //Square other_square = *other_open_list.begin();
-        Square other_square = vector_open_list[0];
-
+        Square* other_square = vector_open_list.front();
         //other_open_list.erase(other_square);
         vector_open_list.erase(vector_open_list.begin());
-        std::cout << "Sacamos la casilla: " << other_square << " de la lista de nodos abiertos" << std::endl;
-        Square *square = new Square(other_square);
-        closed_list.insert(square);
-        other_closed_list.insert(*square);
-        if (other_square.getIdentifier() == '4') {
+        vector_closed_list.push_back(other_square);
+        analysed_nodes.push_back(other_square);
+        
+        std::cout << "Sacamos la casilla: " << *other_square << " de la lista de nodos abiertos" << std::endl;
+        if (other_square->getIdentifier() == '4') {
             std::cout << "Se ha encontrado la salida" << std::endl;
-            PrintPath(&other_square);
-            break;
+            PrintPath(other_square);
+            PrintGeneratedNodes();
+            std::cout << '\n';
+            PrintAnalysedNodes();
+            return;
         }
         
         std::cout << '\n';
         CheckNeighbours(other_square);
-        
+        std::cout << "sale de aqui" << std::endl;
 
         /* Esperar a que el usuario pulse enter*/
         
-        std::cin.ignore();
+        //std::cin.ignore();
         /*Limpiar la pantalla*/
         ++counter;
 
     }
+    std::cout << "El laberinto no tiene solucion" << std::endl;
 }
 
 
 
-void Maze::CheckNeighbours(Square current_square) {
-    for (int i{current_square.getRow() - 1}; i <= current_square.getRow() + 1;++i) {
-        for (int j{current_square.getColumn() - 1}; j <= current_square.getColumn() + 1; ++j) {
-           Square neighbour = map_[i][j];
-            if (j >= 0 && j < cols_ && i >= 0 && i < rows_ 
-                && neighbour.getIdentifier() != '1' && neighbour != current_square) {
-                std:: cout << "i: " << i << " j: " << j << std::endl;
+void Maze::CheckNeighbours(Square* current_square) {
+    for (int i{current_square->getRow() - 1}; i <= current_square->getRow() + 1;++i) {
+        for (int j{current_square->getColumn() - 1}; j <= current_square->getColumn() + 1; ++j) {
+            std::cout << "viendo vecinos" << std::endl;
+           if (j >= 0 && j < cols_ && i >= 0 && i < rows_) {
+                Square* neighbour =  new Square(map_[i][j]);
+                if (neighbour->getIdentifier() != '1' && *neighbour != *current_square) {
+                    std:: cout << "i: " << i << " j: " << j << std::endl;
 
-                // Si no está en la lista C.
-                if (other_closed_list.find(neighbour) == other_closed_list.end()) {
-                    neighbour.setFather(&current_square);
-                    HeuristicCost(&neighbour);
-                    AccumulatedCost(&neighbour);
-                    TotalCost(&neighbour);
-                    std::cout << "Casilla: " << neighbour << "Coste Fn: " << neighbour.getFnCost() << std::endl;
-                    // Si no está en A, lo metemos.
-                    if (IsInVector(vector_open_list, neighbour) == false) {
-                        std::cout << "LA METEMOS EN A" << std::endl;
-                        //int prev_size = vector_open_list.size();
-                        //Square node = SearchNode(other_open_list, neighbour);
-                        //other_open_list.insert(neighbour);
-                        vector_open_list.push_back(neighbour);
-                        //int new_size = other_open_list.size();
-                        /*if (prev_size < new_size) {
-                            std::cout << "Se ha insertado correctamente" << std::endl;
+                    // Si no está en la lista C.
+                    if (IsInVector(vector_closed_list, neighbour) == false) {
+                        neighbour->setFather(current_square);
+                        HeuristicCost(neighbour);
+                        AccumulatedCost(neighbour);
+                        TotalCost(neighbour);
+                        std::cout << "Casilla: " << *neighbour << "Coste Fn: " << neighbour->getFnCost() << std::endl;
+                        // Si no está en A, lo metemos.
+                        if (IsInVector(vector_open_list, neighbour) == false) {
+                            std::cout << "LO METEMOS EN A" << std::endl;
+                            vector_open_list.push_back(neighbour);
+                            generated_nodes.push_back(neighbour);
+                            std::cout << "ENtro" << std::endl;
+                            
                         } else {
-                            PrintOtherList();
-                            std::cout << "No se ha insertado correctamente, el nodo que habia era: " << node  << node.getFnCost() << std::endl;
-                            //other_open_list.erase(node);
-                            Square new_node(neighbour);
-                            other_open_list.insert(new_node);
-                            PrintOtherList();
-                        }*/
-                    } else {
-                        // Si esta en A.
-                        std::cout << "ESTA EN A" << std::endl;
-                        Square* found_node = FindInVector(vector_open_list, neighbour);
-                        if (found_node->getFnCost() > neighbour.getFnCost()) {
-                            // Si el coste de la casilla actual es menor que el de la casilla encontrada en A, actualizamos el coste de la casilla encontrada en A.
-                            std::cout << "Actualizamos el coste: " << found_node->getFnCost() << " -> " << neighbour.getFnCost() << std::endl;
-                           // other_open_list.erase(found_node);
-                            //other_open_list.insert(neighbour);
-                            found_node->setFather(&current_square);
-                            AccumulatedCost(found_node);
-                            TotalCost(found_node);
+                            // Si esta en A.
+                            std::cout << "ESTA EN A" << std::endl;
+                            Square* found_node = FindInVector(vector_open_list, neighbour);
+                            if (found_node->getFnCost() > neighbour->getFnCost()) {
+                                // Si el coste de la casilla actual es menor que el de la casilla encontrada en A, actualizamos el coste de la casilla encontrada en A.
+                                std::cout << "Actualizamos el coste: " << found_node->getFnCost() << " -> " << neighbour->getFnCost() << std::endl;
+                            // other_open_list.erase(found_node);
+                                //other_open_list.insert(neighbour);
+                                found_node->setFather(current_square);
+                                AccumulatedCost(found_node);
+                                TotalCost(found_node);
+                                generated_nodes.push_back(found_node);
+                            }
+
+
                         }
-
-
                     }
                 }
             }
@@ -264,19 +254,40 @@ void Maze::PrintPath(Square* exit) const {
     std::cout << *current_square << std::endl;
 }
 
-void Maze::PrintVectorList() const {
+void Maze::PrintVectorOpenList() const {
     std::cout << "lista abierta: " << std::endl;
   for (int i{0}; i < vector_open_list.size(); ++i) {
-    std::cout << vector_open_list[i];
+    std::cout << *vector_open_list[i];
   }
+}
+
+void Maze::PrintVectorClosedList() const {
+    std::cout << "lista cerrada: " << std::endl;
+  for (int i{0}; i < vector_closed_list.size(); ++i) {
+    std::cout << *vector_closed_list[i];
+  }
+}
+
+void Maze::PrintGeneratedNodes() const {
+    std::cout << "Nodos generados: " << std::endl;
+    for (int i{0}; i < generated_nodes.size(); ++i) {
+        std::cout << *generated_nodes[i];
+    }
+}
+
+void Maze::PrintAnalysedNodes() const {
+    std::cout << "Nodos analizados: " << std::endl;
+    for (int i{0}; i < analysed_nodes.size(); ++i) {
+        std::cout << *analysed_nodes[i];
+    }
 }
 
 void Maze::SortVector() {
     /*Ordenar, poniendo primero los de menor coste Fn*/
     for (int i{0}; i < vector_open_list.size(); ++i) {
         for (int j{0}; j < vector_open_list.size(); ++j) {
-            if (vector_open_list[i].getFnCost() < vector_open_list[j].getFnCost()) {
-                Square aux = vector_open_list[i];
+            if (vector_open_list[i]->getFnCost() < vector_open_list[j]->getFnCost()) {
+                Square* aux = vector_open_list[i];
                 vector_open_list[i] = vector_open_list[j];
                 vector_open_list[j] = aux;
             }
@@ -287,7 +298,7 @@ void Maze::SortVector() {
 void Maze::DeleteDuplicates() {
     for (int i{0}; i < vector_open_list.size(); ++i) {
         for (int j{0}; j < vector_open_list.size(); ++j) {
-            if (vector_open_list[i] == vector_open_list[j] && i != j) {
+            if (*vector_open_list[i] == *vector_open_list[j] && i != j) {
                 vector_open_list.erase(vector_open_list.begin() + j);
             }
         }
@@ -313,18 +324,18 @@ Square SearchNode(std::set<Square> list, Square node) {
     return node;
 }
 
-Square* FindInVector(std::vector<Square> vector, Square node) {
+Square* FindInVector(std::vector<Square*> vector, Square* node) {
   for (int i{0}; i < vector.size(); ++i) {
-    if (vector[i] == node) {
-      return &vector[i];
+    if (*vector[i] == *node) {
+      return vector[i];
     }
   }
   return nullptr;
 }
 
-bool IsInVector(std::vector<Square> vector, Square node) {  
+bool IsInVector(std::vector<Square*> vector, Square* node) {  
   for (int i{0}; i < vector.size(); ++i) {
-    if (vector[i] == node) {
+    if (*vector[i] == *node) {
       return true;
     }
   }

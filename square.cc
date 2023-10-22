@@ -17,6 +17,7 @@ bool operator!=(const Square& square, const Square& other_square) {
 }
 
 std::ostream& operator<<(std::ostream& os, const Square& square) {
-  os << square.getRow() << ", " << square.getColumn() << " Identificador: " << square.getIdentifier() << std::endl;
+  os << square.getRow() << ", " << square.getColumn() << " Identificador: " << square.getIdentifier() << " Coste: " <<
+  square.getFnCost() << std::endl;
   return os;
 }

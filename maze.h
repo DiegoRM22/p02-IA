@@ -22,13 +22,16 @@ public:
     void HeuristicCost(Square* current_square);
     void AccumulatedCost(Square* current_square);
     void TotalCost(Square* current_square);
-    void CheckNeighbours(Square current_square);
+    void CheckNeighbours(Square* current_square);
     void PrintOpenList() const;
     void PrintOtherList() const;
     void PrintOtherClosedList() const;
     void PrintClosedList() const;
     void PrintPath(Square* exit) const;
-    void PrintVectorList() const;
+    void PrintVectorOpenList() const;
+    void PrintVectorClosedList() const;
+    void PrintGeneratedNodes() const;
+    void PrintAnalysedNodes() const;
     void SortVector();
     void DeleteDuplicates();
 
@@ -44,7 +47,10 @@ private:
     std::set<Square*> closed_list;
     std::set<Square> other_open_list;
     std::set<Square> other_closed_list;
-    std::vector<Square> vector_open_list;
+    std::vector<Square*> vector_open_list;
+    std::vector<Square*> vector_closed_list;
+    std::vector<Square*> generated_nodes;
+    std::vector<Square*> analysed_nodes;
 };
 
 bool IsInList(std::set<Square> list, Square node);
@@ -54,9 +60,9 @@ Square SearchNode(std::set<Square> list, Square node);
 void ModifyFnCost(std::set<Square> list, Square node, int new_cost);
 
 
-Square* FindInVector(std::vector<Square> vector, Square node);
+Square* FindInVector(std::vector<Square*> vector, Square* node);
 
-bool IsInVector(std::vector<Square> vector, Square node);
+bool IsInVector(std::vector<Square*> vector, Square* node);
 
 
 
