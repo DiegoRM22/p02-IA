@@ -4,23 +4,25 @@
 #include "maze.h"
 
 void FilePutContents(const std::string& name, const std::string& content, bool append) {
-    std::cout << "ESCRIBIENDO EN EL ARCHIVO " << name  << " " << content << std::endl;
+    //std::cout << "ESCRIBIENDO EN EL ARCHIVO " << name  << " " << content << std::endl;
     std::ofstream outfile;
-    if (append)
+    //outfile << "Filas: " << std::endl;
+    if (append) {
         outfile.open(name, std::ios_base::app);
-    else
+    } else {
         outfile.open(name);
+    }
     outfile << content;
 }
 
 Maze::Maze(const std::string filename) {
     std::ifstream file(filename);
-    std::cout << "Leyendo el archivo " << filename << std::endl;
+    //std::cout << "Leyendo el archivo " << filename << std::endl;
     file >> rows_;
     file >> cols_;
     std::string current_line;
     getline(file, current_line);
-    std::cout << "El laberinto tiene " << rows_ << " filas y " << cols_ << " columnas" << std::endl;
+    //std::cout << "El laberinto tiene " << rows_ << " filas y " << cols_ << " columnas" << std::endl;
     int i{0};
     map_.resize(rows_, std::vector<Square>(cols_));
     while(file.peek() != EOF) {
@@ -43,10 +45,10 @@ Maze::Maze(const std::string filename) {
 }
 
 void Maze::AStarSearch(const std::string& filename) {
-    FilePutContents(filename, "Filas: " + std::to_string(rows_), true); 
-    FilePutContents(filename, "Columnas: " + std::to_string(cols_), true);
-    FilePutContents(filename, "Entrada: " + std::to_string(enter_->getRow()) + ", " + std::to_string(enter_->getColumn()), true);
-    FilePutContents(filename, "Salida: " + std::to_string(exit_->getRow()) + ", " + std::to_string(exit_->getColumn()), true);
+    FilePutContents(filename, "Filas: " + std::to_string(rows_) + '\n', true); 
+    FilePutContents(filename, "Columnas: " + std::to_string(cols_) + '\n', true);
+    FilePutContents(filename, "Entrada: " + std::to_string(enter_->getRow()) + ", " + std::to_string(enter_->getColumn()) + '\n', true);
+    FilePutContents(filename, "Salida: " + std::to_string(exit_->getRow()) + ", " + std::to_string(exit_->getColumn()) + '\n', true);
     vector_open_list.clear();
     vector_closed_list.clear();
     HeuristicCost(enter_);
@@ -59,8 +61,8 @@ void Maze::AStarSearch(const std::string& filename) {
         DeleteDuplicates();
         SortVector();
         
-        PrintVectorOpenList();
-        PrintVectorClosedList();
+        //PrintVectorOpenList();
+        //PrintVectorClosedList();
         //Square other_square = *other_open_list.begin();
         Square* other_square = vector_open_list.front();
         //other_open_list.erase(other_square);
@@ -89,7 +91,11 @@ void Maze::AStarSearch(const std::string& filename) {
         ++counter;
 
     }
-    std::cout << "El laberinto no tiene solucion" << std::endl;
+    //std::cout << "El laberinto no tiene solucion" << std::endl;
+    FilePutContents(filename, "El laberinto no tiene solucion\n", true);
+    PrintGeneratedNodes(filename);
+    FilePutContents(filename, "\n", true);
+    PrintAnalysedNodes(filename);
 }
 
 
@@ -101,7 +107,7 @@ void Maze::CheckNeighbours(Square* current_square) {
            if (j >= 0 && j < cols_ && i >= 0 && i < rows_) {
                 Square* neighbour =  new Square(map_[i][j]);
                 if (neighbour->getIdentifier() != '1' && *neighbour != *current_square) {
-                    std:: cout << "i: " << i << " j: " << j << std::endl;
+                    //std:: cout << "i: " << i << " j: " << j << std::endl;
 
                     // Si no está en la lista C.
                     if (IsInVector(vector_closed_list, neighbour) == false) {
@@ -210,12 +216,12 @@ void Maze::TotalCost(Square* current_square) {
 }
 
 void Maze::Print() const{
-    std::cout << "Laberinto de dimensiones " << rows_ << "x" << cols_ << std::endl;
+    FilePutContents("output.txt", "Laberinto de dimensiones " + std::to_string(rows_) + "x" + std::to_string(cols_) + '\n', false);
     for (int i{0}; i < rows_; ++i) {
         for (int j{0}; j < cols_; ++j) {
-            std::cout << map_[i][j].getIdentifier() << " ";
+            FilePutContents("output.txt", std::string(1, map_[i][j].getIdentifier()) + " ", true);
         }
-        std::cout << std::endl;
+        FilePutContents("output.txt", "\n", true);
     }
 }
 
@@ -260,14 +266,17 @@ void Maze::PrintOtherClosedList() const {
 }
 
 void Maze::PrintPath(Square* exit, const std::string& filename) const {
-    std::ofstream outfile(filename);
-    outfile.open(filename, std::ios_base::app);
     Square* current_square = exit;
+    FilePutContents(filename, "Solución: ", true);
     while (current_square->getFather() != nullptr) {
-        outfile << *current_square << std::endl;
+        //outfile << *current_square << std::endl;
+        std::string content = "(" + std::to_string(current_square->getRow()) + "," + std::to_string(current_square->getColumn()) + ")" + " <- ";
+        FilePutContents(filename, content, true);
         current_square = current_square->getFather();
     }
-    outfile << *current_square << std::endl;
+    std::string content = "(" + std::to_string(current_square->getRow()) + "," + std::to_string(current_square->getColumn()) + ")" + '\n';
+    FilePutContents(filename, content, true);
+    //outfile << *current_square << std::endl;
 }
 
 void Maze::PrintVectorOpenList() const {
@@ -285,20 +294,18 @@ void Maze::PrintVectorClosedList() const {
 }
 
 void Maze::PrintGeneratedNodes(const std::string& filename) const {
-    std::ofstream outfile(filename);
-    outfile.open(filename, std::ios_base::app);
-    outfile << "Nodos generados: " << std::endl;
+    FilePutContents(filename, "Nodos generados: ", true);
     for (int i{0}; i < generated_nodes.size(); ++i) {
-        outfile << *generated_nodes[i];
+        std::string content = "(" + std::to_string(generated_nodes[i]->getRow()) + "," + std::to_string(generated_nodes[i]->getColumn()) + ")" + " , ";
+        FilePutContents(filename, content, true);
     }
 }
 
 void Maze::PrintAnalysedNodes(const std::string& filename) const {
-    std::ofstream outfile(filename);
-    outfile.open(filename, std::ios_base::app);
-    std::cout << "Nodos analizados: " << std::endl;
+    FilePutContents(filename, "Nodos analizados: ", true);
     for (int i{0}; i < analysed_nodes.size(); ++i) {
-        outfile << *analysed_nodes[i];
+        std::string content = "(" + std::to_string(analysed_nodes[i]->getRow()) + "," + std::to_string(analysed_nodes[i]->getColumn()) + ")" + " , ";
+        FilePutContents(filename, content, true);
     }
 }
 
