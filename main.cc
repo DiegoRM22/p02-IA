@@ -28,9 +28,21 @@ int main(int argc, char* argv[]) {
 
     /*Calcular el tiempo de ejecucion*/
 
-
-    /*maze.ModifyExit(0, 9);
-    maze.Print();
-    maze.AStarSearch();*/
+    std::cout << "Desea cambiar la entrada/salida(S/N)?" << std::endl;
+    char answer;
+    std::cin >> answer;
+    if (answer == 'S') {
+        std::cout << "Introduzca la nueva entrada (fila, columna): ";
+        int enter_row, enter_col;
+        std::cin >> enter_row >> enter_col;
+        maze.ModifyEnter(enter_row, enter_col);
+        std::cout << "Introduzca la nueva salida (fila, columna): ";
+        int exit_row, exit_col;
+        std::cin >> exit_row >> exit_col;
+        maze.ModifyExit(exit_row, exit_col);
+        maze.Print();
+        maze.AStarSearch(output_name, option);
+    }
+    
     return 0;
 }
