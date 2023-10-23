@@ -1,15 +1,3 @@
-/**
-  * Universidad de La Laguna
-  * Escuela Superior de Ingeniería y Tecnología
-  * Grado en Ingeniería Informática
-  * Informática Básica
-  *
-  * @author Diego Rodríguez alu0101464992@ull.edu.es
-  * @brief Este programa implementa el algoritmo A*.
-  * @bug No hay bugs conocidos
-  */
-
-
 #include <fstream>
 #include <set>
 #include <cmath>
