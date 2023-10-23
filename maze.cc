@@ -1,5 +1,7 @@
 #include <fstream>
 #include <set>
+#include <cmath>
+
 
 #include "maze.h"
 
@@ -44,14 +46,20 @@ Maze::Maze(const std::string filename) {
     }
 }
 
-void Maze::AStarSearch(const std::string& filename) {
+void Maze::AStarSearch(const std::string& filename, const int heuristicType) {
     FilePutContents(filename, "Filas: " + std::to_string(rows_) + '\n', true); 
     FilePutContents(filename, "Columnas: " + std::to_string(cols_) + '\n', true);
     FilePutContents(filename, "Entrada: " + std::to_string(enter_->getRow()) + ", " + std::to_string(enter_->getColumn()) + '\n', true);
     FilePutContents(filename, "Salida: " + std::to_string(exit_->getRow()) + ", " + std::to_string(exit_->getColumn()) + '\n', true);
     vector_open_list.clear();
     vector_closed_list.clear();
-    HeuristicCost(enter_);
+    if (heuristicType == 0) {
+        // Heurística Manhattan
+        HeuristicCost(enter_);
+    } else {
+        // Heurística Euclideana
+        EucledianDistance(enter_);
+    }
     AccumulatedCost(enter_);
     TotalCost(enter_);
     vector_open_list.push_back(enter_);
@@ -74,6 +82,7 @@ void Maze::AStarSearch(const std::string& filename) {
         if (other_square->getIdentifier() == '4') {
             std::cout << "Se ha encontrado la salida" << std::endl;
             PrintPath(other_square, filename);
+            FilePutContents(filename, "Coste: " + std::to_string(other_square->getFnCost()) + '\n', true);
             PrintGeneratedNodes(filename);
             FilePutContents(filename, "\n", true);
             PrintAnalysedNodes(filename);
@@ -81,7 +90,7 @@ void Maze::AStarSearch(const std::string& filename) {
         }
         
         //std::cout << '\n';
-        CheckNeighbours(other_square);
+        CheckNeighbours(other_square, heuristicType);
         //std::cout << "sale de aqui" << std::endl;
 
         /* Esperar a que el usuario pulse enter*/
@@ -100,7 +109,7 @@ void Maze::AStarSearch(const std::string& filename) {
 
 
 
-void Maze::CheckNeighbours(Square* current_square) {
+void Maze::CheckNeighbours(Square* current_square, const int heuristicType) {
     for (int i{current_square->getRow() - 1}; i <= current_square->getRow() + 1;++i) {
         for (int j{current_square->getColumn() - 1}; j <= current_square->getColumn() + 1; ++j) {
             //std::cout << "viendo vecinos" << std::endl;
@@ -112,7 +121,14 @@ void Maze::CheckNeighbours(Square* current_square) {
                     // Si no está en la lista C.
                     if (IsInVector(vector_closed_list, neighbour) == false) {
                         neighbour->setFather(current_square);
-                        HeuristicCost(neighbour);
+                        if (heuristicType == 0) {
+                            // Heurística Manhattan
+                            HeuristicCost(neighbour);
+                        } else {
+                            // Heurística Euclideana
+                            EucledianDistance(neighbour);
+                        }
+                        //HeuristicCost(neighbour);
                         AccumulatedCost(neighbour);
                         TotalCost(neighbour);
                         //std::cout << "Casilla: " << *neighbour << "Coste Fn: " << neighbour->getFnCost() << std::endl;
@@ -192,6 +208,17 @@ void Maze::HeuristicCost(Square* current_square) {
     int column_difference{abs(current_square->getColumn() - exit_->getColumn())};
     // Suma de las casillas de diferencia por el precio de movimiento horizontal o vertical.
     current_square->setHnCost((row_difference + column_difference) * kCostStraight);
+}
+
+void Maze::EucledianDistance(Square* current_square) {
+    // Diferencia de casillas en la fila.
+    int row_difference{abs(current_square->getRow() - exit_->getRow())};
+    // diferencia de casillas en la columna.
+    int column_difference{abs(current_square->getColumn() - exit_->getColumn())};
+    // Suma de las casillas de diferencia por el precio de movimiento horizontal o vertical.
+    /*d= Raíz cuadrada de */
+    int distance = sqrt(pow(row_difference, 2) + pow(column_difference, 2));
+    current_square->setHnCost(distance * kCostStraight);
 }
 
 void Maze::AccumulatedCost(Square* current_square) {

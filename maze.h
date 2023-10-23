@@ -18,11 +18,12 @@ public:
     int getCols() const { return cols_; }
     void ModifyEnter(const int enter_row, const int enter_col);
     void ModifyExit(const int exit_row, const int exit_col);
-    void AStarSearch(const std::string& filename);
+    void AStarSearch(const std::string& filename, const int heuristicType);
     void HeuristicCost(Square* current_square);
+    void EucledianDistance(Square* current_square);
     void AccumulatedCost(Square* current_square);
     void TotalCost(Square* current_square);
-    void CheckNeighbours(Square* current_square);
+    void CheckNeighbours(Square* current_square, const int heuristicType);
     void PrintOpenList() const;
     void PrintOtherList() const;
     void PrintOtherClosedList() const;
